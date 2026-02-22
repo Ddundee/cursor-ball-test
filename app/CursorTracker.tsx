@@ -1,8 +1,10 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react';
+import { motion } from 'framer-motion';
 import { WebsocketProvider } from 'y-websocket'
 import { Doc } from 'yjs';
+import { useBallPhysics, BALL_RADIUS } from './useBallPhysics';
 
 const COLORS = [
     '#ef4444', '#f97316', '#eab308', '#22c55e',
@@ -21,11 +23,14 @@ interface CursorState {
 
 export default function CursorTracker() {
     const [ydoc] = useState(() => new Doc());
+    const [provider, setProvider] = useState<WebsocketProvider | null>(null);
     const clientID = ydoc.clientID;
     const myColor = pickColor(clientID);
 
     const [cursorPos, setCursorPos] = useState({ x: 0, y: 0 });
     const [remoteCursors, setRemoteCursors] = useState<Map<number, CursorState>>(new Map());
+
+    const ballPos = useBallPhysics(ydoc, provider, clientID, cursorPos, remoteCursors);
 
     const updateRemoteCursors = useCallback((awareness: WebsocketProvider['awareness']) => {
         const states = awareness.getStates();
@@ -39,43 +44,75 @@ export default function CursorTracker() {
     }, [clientID]);
 
     useEffect(() => {
-        const provider = new WebsocketProvider(
+        const p = new WebsocketProvider(
             'ws://localhost:1234', 'demo-room', ydoc
         );
+        queueMicrotask(() => setProvider(p));
 
-        provider.awareness.setLocalStateField('color', myColor);
-        provider.awareness.setLocalStateField('clientID', clientID);
+        p.awareness.setLocalStateField('color', myColor);
+        p.awareness.setLocalStateField('clientID', clientID);
 
         const handleMouseMove = (event: MouseEvent) => {
             const pos = { x: event.clientX, y: event.clientY };
             setCursorPos(pos);
-            provider.awareness.setLocalStateField('cursor', pos);
+            p.awareness.setLocalStateField('cursor', pos);
         };
 
         const handleMouseLeave = () => {
-            provider.awareness.setLocalStateField('cursor', null);
+            p.awareness.setLocalStateField('cursor', null);
         };
 
         const handleAwarenessChange = () => {
-            updateRemoteCursors(provider.awareness);
+            updateRemoteCursors(p.awareness);
         };
 
         window.addEventListener('mousemove', handleMouseMove);
         document.addEventListener('mouseleave', handleMouseLeave);
-        provider.awareness.on('change', handleAwarenessChange);
+        p.awareness.on('change', handleAwarenessChange);
         handleAwarenessChange();
 
         return () => {
             window.removeEventListener('mousemove', handleMouseMove);
             document.removeEventListener('mouseleave', handleMouseLeave);
-            provider.awareness.off('change', handleAwarenessChange);
-            provider.destroy();
+            p.awareness.off('change', handleAwarenessChange);
+            p.destroy();
+            setProvider(null);
             ydoc.destroy();
         };
     }, [ydoc, clientID, myColor, updateRemoteCursors]);
 
+    const ballSize = BALL_RADIUS * 2;
+
     return (
-        <div className="relative w-screen h-screen overflow-hidden select-none">
+        <div className="relative w-screen h-screen overflow-hidden select-none bg-linear-to-b from-green-700 via-green-600 to-green-800">
+            {/* Field line */}
+            <div className="absolute inset-0 border-[3px] border-white/40 rounded-none pointer-events-none" style={{ borderStyle: 'solid' }} />
+            <motion.div
+                className="absolute pointer-events-none rounded-full drop-shadow-xl"
+                style={{
+                    width: ballSize,
+                    height: ballSize,
+                    left: 0,
+                    top: 0,
+                }}
+                animate={{
+                    x: ballPos.x - BALL_RADIUS,
+                    y: ballPos.y - BALL_RADIUS,
+                }}
+                transition={{ type: 'tween', duration: 0.05 }}
+            >
+                <svg viewBox="0 0 40 40" className="w-full h-full" fill="none">
+                    <circle cx="20" cy="20" r="19.5" fill="#fff" stroke="#111" strokeWidth="0.6" />
+                    <path d="M20 4 L23 12 L20 20 L17 12 Z" fill="#111" />
+                    <path d="M20 36 L17 28 L20 20 L23 28 Z" fill="#111" />
+                    <path d="M4 20 L12 17 L20 20 L12 23 Z" fill="#111" />
+                    <path d="M36 20 L28 23 L20 20 L28 17 Z" fill="#111" />
+                    <path d="M8 10 L12 14 L10 20 L6 18 Z" fill="#111" />
+                    <path d="M32 10 L28 14 L30 20 L34 18 Z" fill="#111" />
+                    <path d="M8 30 L6 22 L10 20 L12 26 Z" fill="#111" />
+                    <path d="M32 30 L34 22 L30 20 L28 26 Z" fill="#111" />
+                </svg>
+            </motion.div>
             {[...remoteCursors.entries()].map(([id, state]) => (
                 <div
                     key={id}
