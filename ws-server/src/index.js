@@ -82,7 +82,8 @@ server.listen(PORT, HOST, () => {
       const dx = ball.position.x - fx;
       const dy = ball.position.y - fy;
       const dist = Math.sqrt(dx * dx + dy * dy);
-      if (dist <= BALL_RADIUS && dist > 0) {
+      // Only when the cursor point itself is inside the ball (no radius around cursor)
+      if (dist < BALL_RADIUS && dist > 0) {
         const nx = dx / dist;
         const ny = dy / dist;
         const push = CURSOR_FORCE * (BALL_RADIUS - dist + 5);
