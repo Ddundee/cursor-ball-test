@@ -1,0 +1,14 @@
+{
+  "name": "ws-server",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "HOST=0.0.0.0 npx y-websocket"
+  },
+  "dependencies": {
+    "@y/websocket-server": "^0.1.5"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

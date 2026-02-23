@@ -1,0 +1,33 @@
+# Render Blueprint: deploy both the Next.js app and the WebSocket server.
+# Dashboard: https://dashboard.render.com/blueprints
+# Add this repo and Render will create both services.
+
+services:
+  # WebSocket server (y-websocket) — clients connect here for real-time sync
+  - type: web
+    name: cursor-bounce-ws
+    runtime: node
+    rootDir: ws-server
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: HOST
+        value: 0.0.0.0
+      # PORT is set by Render automatically
+
+  # Next.js frontend
+  - type: web
+    name: cursor-bounce-app
+    runtime: node
+    rootDir: client
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      # Replace with your WebSocket service URL after first deploy:
+      # e.g. wss://cursor-bounce-ws.onrender.com
+      - key: NEXT_PUBLIC_WS_URL
+        sync: false
+        # After deploying, set this in the app's Environment tab to:
+        # wss://<your-ws-service-name>.onrender.com
