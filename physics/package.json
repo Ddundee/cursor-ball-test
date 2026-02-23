@@ -1,5 +1,5 @@
 {
-  "name": "ws-server",
+  "name": "physics",
   "version": "1.0.0",
   "private": true,
   "type": "module",
@@ -7,10 +7,10 @@
     "start": "node src/index.js"
   },
   "dependencies": {
-    "@y/websocket-server": "^0.1.5",
-    "lib0": "^0.2.102",
     "matter-js": "^0.20.0",
-    "ws": "^8.19.0"
+    "ws": "^8.19.0",
+    "y-websocket": "^3.0.0",
+    "yjs": "^13.6.29"
   },
   "engines": {
     "node": ">=18"

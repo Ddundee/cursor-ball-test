@@ -1,9 +1,8 @@
-# Render Blueprint: deploy both the Next.js app and the WebSocket server.
+# Render Blueprint: WebSocket server (with in-process physics) + Next.js app.
 # Dashboard: https://dashboard.render.com/blueprints
-# Add this repo and Render will create both services.
 
 services:
-  # WebSocket server (y-websocket) — clients connect here for real-time sync
+  # WebSocket server + physics (y-websocket relay and matter.js in one process)
   - type: web
     name: cursor-bounce-ws
     runtime: node
@@ -14,7 +13,7 @@ services:
     envVars:
       - key: HOST
         value: 0.0.0.0
-      # PORT is set by Render automatically
+      # PORT set by Render; ROOM defaults to demo-room
 
   # Next.js frontend
   - type: web

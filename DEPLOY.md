@@ -1,6 +1,6 @@
 # Deploy on Render
 
-You need **two** services: the WebSocket server (so everyone shares the same room) and the Next.js app.
+You need **two** services: the WebSocket server (relay + physics in one process) and the Next.js app.
 
 ## Option A: Blueprint (one click)
 
@@ -35,8 +35,8 @@ You need **two** services: the WebSocket server (so everyone shares the same roo
 
 ## Local development
 
-- **Terminal 1:** `cd ws-server && npm install && npm start` (or `HOST=localhost PORT=1234 npx y-websocket`).
-- **Terminal 2:** `cd client && npm run dev`.
+- **Terminal 1:** `cd ws-server && npm install && npm start` (runs WebSocket relay + physics in one process)
+- **Terminal 2:** `cd client && npm run dev`
 - The app uses `ws://localhost:1234` when `NEXT_PUBLIC_WS_URL` is not set.
 
 ## Notes
